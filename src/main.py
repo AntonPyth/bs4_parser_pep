@@ -19,6 +19,12 @@ from configs import configure_argument_parser, configure_logging
 from outputs import control_output
 
 
+def fetch_and_parse(session, url):
+    """Получает страницу по URL и парсит её."""
+    response = get_response(session, url)
+    return BeautifulSoup(response.text, features='lxml')
+
+
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
     # response = session.get(whats_new_url)
@@ -152,7 +158,7 @@ def download(session):
         f.write(file_resp.content)
     logging.info(f'Архив был загружен и сохранён: {archive_path}')
 
-    return [('Скачанный файл', str(archive_path))]
+    # return [('Скачанный файл', str(archive_path))]
 
 
 def pep(session):
@@ -198,6 +204,7 @@ MODE_TO_FUNCTION = {
     'whats-new': whats_new,
     'latest-versions': latest_versions,
     'download': download,
+    'pep': pep
 }
 
 
