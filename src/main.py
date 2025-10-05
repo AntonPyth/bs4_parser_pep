@@ -8,7 +8,13 @@ import requests_cache
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-from constants import BASE_DIR, MAIN_DOC_URL
+from constants import (
+    BASE_DIR,
+    MAIN_DOC_URL,
+    EXPECTED_STATUS,
+    PEPS_NUMS,
+    PEP_URL
+)
 from configs import configure_argument_parser, configure_logging
 from outputs import control_output
 
@@ -147,6 +153,45 @@ def download(session):
     logging.info(f'Архив был загружен и сохранён: {archive_path}')
 
     return [('Скачанный файл', str(archive_path))]
+
+
+def pep(session):
+    soup = fetch_and_parse(session, PEPS_NUMS)
+    tr_tag = soup.find_all('tr')
+    results = [('Статус', 'Количество'), ]
+    actual_statuses = {}
+    total_peps = len(tr_tag) - 1
+    log_messages = []
+    for i in tqdm(range(1, len(tr_tag))):
+        try:
+            table_pep_status = find_tag(tr_tag[i], 'abbr').text[1:]
+            expected_status = EXPECTED_STATUS[table_pep_status]
+            pep_link = urljoin(PEP_URL, tr_tag[i].a['href'])
+            soup = fetch_and_parse(session, pep_link)
+            pep_card_dl_tag = find_tag(
+                soup,
+                'dl',
+                {'class': 'rfc2822 field-list simple'}
+            )
+            for tag in pep_card_dl_tag:
+                if tag.name == 'dt' and tag.text == 'Status:':
+                    pep_card_status = tag.next_sibling.next_sibling.string
+                    actual_statuses[pep_card_status] = actual_statuses.get(
+                        pep_card_status, 0
+                    ) + 1
+                    if pep_card_status not in expected_status:
+                        log_messages.append(
+                            f'Несовпадающие статус для:{pep_link}\n'
+                            f'Статус в карточке: {pep_card_status}\n'
+                            f'Статус в общей таблице: {expected_status}'
+                        )
+        except Exception as e:
+            log_messages.append(f'Ошибка при выполнении парсера: {e}')
+    results.extend(actual_statuses.items())
+    results.append(('Total', total_peps))
+    for message in log_messages:
+        logging.info(message)
+    return results
 
 
 MODE_TO_FUNCTION = {
