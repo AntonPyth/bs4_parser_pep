@@ -7,10 +7,10 @@ from bs4 import BeautifulSoup
 from exceptions import ParserFindTagException
 
 
-def fetch_and_parse(session, url):
+def fetch_and_parse(session, url, parser='lxml'):
     """Получает страницу по URL и парсит её."""
     response = get_response(session, url)
-    return BeautifulSoup(response.text, features='lxml')
+    return BeautifulSoup(response.text, features=parser)
 
 
 def get_response(session, url, encoding='utf-8'):
@@ -18,11 +18,8 @@ def get_response(session, url, encoding='utf-8'):
         response = session.get(url)
         response.encoding = encoding
         return response
-    except RequestException:
-        logging.exception(
-            'Возникла ошибка при загрузке страницы %s', url,
-            stack_info=True
-        )
+    except RequestException as e:
+        raise e
 
 
 def find_tag(soup, tag, attrs=None):
