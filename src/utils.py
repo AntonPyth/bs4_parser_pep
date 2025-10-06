@@ -1,17 +1,22 @@
-# utils.py
 import logging
 
-# Импорт базового класса ошибок библиотеки request.
 from requests import RequestException
+
+from bs4 import BeautifulSoup
 
 from exceptions import ParserFindTagException
 
 
-# Перехват ошибки RequestException.
-def get_response(session, url):
+def fetch_and_parse(session, url):
+    """Получает страницу по URL и парсит её."""
+    response = get_response(session, url)
+    return BeautifulSoup(response.text, features='lxml')
+
+
+def get_response(session, url, encoding='utf-8'):
     try:
         response = session.get(url)
-        response.encoding = 'utf-8'
+        response.encoding = encoding
         return response
     except RequestException:
         logging.exception(

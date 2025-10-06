@@ -16,13 +16,7 @@ from constants import (
     PEPS_NUMS,
 )
 from outputs import control_output
-from utils import find_tag, get_response
-
-
-def fetch_and_parse(session, url):
-    """Получает страницу по URL и парсит её."""
-    response = get_response(session, url)
-    return BeautifulSoup(response.text, features='lxml')
+from utils import find_tag, get_response, fetch_and_parse
 
 
 def whats_new(session):
