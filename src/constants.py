@@ -8,6 +8,7 @@ PEP_URL = 'https://peps.python.org/'
 
 # Other constants
 BASE_DIR = Path(__file__).parent
+DOWNLOADS_DIR = BASE_DIR / 'downloads'
 DATETIME_FORMAT = '%Y-%m-%d_%H-%M-%S'
 DT_FORMAT = '%d.%m.%Y %H:%M:%S'
 PRETTY = 'pretty'

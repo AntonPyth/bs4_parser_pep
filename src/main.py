@@ -107,8 +107,6 @@ def latest_versions(session):
 
 def download(session):
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
-    # response = session.get(downloads_url)
-    # response.encoding = 'utf-8'
     response = get_response(session, downloads_url)
     if response is None:
         return
@@ -136,8 +134,7 @@ def download(session):
 
     filename = archive_url.rstrip('/').split('/')[-1]
     print(f'Ссылка на файл: {archive_url}')
-
-    downloads_dir = Path(BASE_DIR) / 'downloads'
+    downloads_dir = BASE_DIR / 'downloads'
     downloads_dir.mkdir(exist_ok=True)
 
     archive_path = downloads_dir / filename
@@ -148,8 +145,6 @@ def download(session):
     with open(archive_path, 'wb') as f:
         f.write(file_resp.content)
     logging.info(f'Архив был загружен и сохранён: {archive_path}')
-
-    # return [('Скачанный файл', str(archive_path))]
 
 
 def pep(session):
