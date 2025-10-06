@@ -1,22 +1,22 @@
-import re
-from urllib.parse import urljoin
-from pathlib import Path
 import logging
-from utils import get_response, find_tag
+import re
+from pathlib import Path
+from urllib.parse import urljoin
 
 import requests_cache
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+from configs import configure_argument_parser, configure_logging
 from constants import (
     BASE_DIR,
-    MAIN_DOC_URL,
     EXPECTED_STATUS,
+    MAIN_DOC_URL,
+    PEP_URL,
     PEPS_NUMS,
-    PEP_URL
 )
-from configs import configure_argument_parser, configure_logging
 from outputs import control_output
+from utils import find_tag, get_response
 
 
 def fetch_and_parse(session, url):
@@ -27,8 +27,6 @@ def fetch_and_parse(session, url):
 
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
-    # response = session.get(whats_new_url)
-    # response.encoding = 'utf-8'
     response = get_response(session, whats_new_url)
     if response is None:
         return
@@ -56,7 +54,6 @@ def whats_new(session):
         href = version_a_tag['href']
         version_link = urljoin(whats_new_url, href)
 
-        # Запрос страницы конкретной версии What's New
         v_resp = session.get(version_link)
         v_resp.encoding = 'utf-8'
         v_soup = BeautifulSoup(v_resp.text, 'lxml')
@@ -209,13 +206,10 @@ MODE_TO_FUNCTION = {
 
 
 def main():
-    # Запускаем функцию с конфигурацией логов.
     configure_logging()
-    # Отмечаем в логах момент запуска программы.
     logging.info('Парсер запущен!')
     arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
     args = arg_parser.parse_args()
-    # Логируем переданные аргументы командной строки.
     logging.info(f'Аргументы командной строки: {args}')
 
     session = requests_cache.CachedSession()
@@ -227,7 +221,6 @@ def main():
 
     if parser_mode != 'download' and results is not None:
         control_output(results, args)
-    # Логируем завершение работы парсера.
     logging.info('Парсер завершил работу.')
 
 
