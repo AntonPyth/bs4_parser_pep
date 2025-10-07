@@ -114,6 +114,9 @@ def download(session):
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
     soup = get_soup(session, downloads_url)
 
+    downloads_dir = BASE_DIR / DOWNLOADS
+    downloads_dir.mkdir(exist_ok=True)
+
     main_tag = find_tag(soup, 'div', attrs={'role': 'main'})
     if main_tag is None:
         raise ValueError(
@@ -138,12 +141,9 @@ def download(session):
 
     filename = archive_url.rstrip('/').split('/')[-1]
     logging.info(f'Ссылка на файл: {archive_url}')
-    downloads_dir = BASE_DIR / DOWNLOADS
-    downloads_dir.mkdir(exist_ok=True)
 
     archive_path = downloads_dir / filename
 
-    # Скачивание архива
     file_resp = session.get(archive_url)
     file_resp.raise_for_status()
     with open(archive_path, 'wb') as f:
