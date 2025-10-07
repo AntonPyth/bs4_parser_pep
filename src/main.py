@@ -49,11 +49,10 @@ def whats_new(session):
         href = version_a_tag['href']
         version_link = urljoin(whats_new_url, href)
 
-        v_soup = get_soup(session, version_link)
-        if v_soup is None:
-            error_messages.append(
-                f'Не удалось получить страницу: {version_link}'
-            )
+        try:
+            v_soup = get_soup(session, version_link)
+        except Exception as e:
+            error_messages.append(f'Не удалось получить страницу: {version_link} - {str(e)}')
             continue
 
         h1 = find_tag(v_soup, 'h1')
@@ -160,10 +159,13 @@ def pep(session):
             table_pep_status = find_tag(tr_tag[i], 'abbr').text[1:]
             expected_status = EXPECTED_STATUS[table_pep_status]
             pep_link = urljoin(PEP_URL, tr_tag[i].a['href'])
-            soup = get_soup(session, pep_link)
-            if soup is None:
-                log_messages.append(f'Ошибка при запросе к {pep_link}')
+
+            try:
+                soup = get_soup(session, pep_link)
+            except Exception as e:
+                log_messages.append(f'Ошибка при запросе к {pep_link}: {str(e)}')
                 continue
+
             pep_card_dl_tag = find_tag(
                 soup,
                 'dl',
