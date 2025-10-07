@@ -41,7 +41,7 @@ def whats_new(session):
     sections_by_python = toctree.find_all('li', attrs={'class': 'toctree-l1'})
 
     error_messages = []
-    
+
     for section in tqdm(sections_by_python):
         version_a_tag = section.find('a')
         if version_a_tag is None or 'href' not in version_a_tag.attrs:
@@ -52,7 +52,9 @@ def whats_new(session):
         try:
             v_soup = get_soup(session, version_link)
         except Exception as e:
-            error_messages.append(f'Не удалось получить страницу: {version_link} - {str(e)}')
+            error_messages.append(
+                f'Не удалось получить страницу: {version_link} - {str(e)}'
+            )
             continue
 
         h1 = find_tag(v_soup, 'h1')
@@ -121,7 +123,9 @@ def download(session):
     table_tag = find_tag(main_tag, 'table', attrs={'class': 'docutils'})
     if table_tag is None:
         raise ValueError('Таблица с загрузками не найдена')
-    pdf_tag = table_tag.find('a', href=re.compile(r'.+pdf-(a4|letter|docs)\.zip$'))
+    pdf_tag = table_tag.find(
+        'a', href=re.compile(r'.+pdf-(a4|letter|docs)\.zip$')
+    )
     if pdf_tag is None:
         pdf_tag = table_tag.find('a', href=re.compile(r'.+pdf\.zip$'))
 
@@ -163,7 +167,9 @@ def pep(session):
             try:
                 soup = get_soup(session, pep_link)
             except Exception as e:
-                log_messages.append(f'Ошибка при запросе к {pep_link}: {str(e)}')
+                log_messages.append(
+                    f'Ошибка при запросе к {pep_link}: {str(e)}'
+                )
                 continue
 
             pep_card_dl_tag = find_tag(
