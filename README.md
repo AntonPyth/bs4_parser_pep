@@ -29,7 +29,7 @@
 1. Клонировать репозиторий и перейти в него
    
   ```
-  git clone https://github.com/Iceberen/bs4_parser_pep.git
+  git clone https://github.com/AntonPyth/bs4_parser_pep.git
   cd bs4_parser_pep
   ```
 2. Cоздать и активировать виртуальное окружение
