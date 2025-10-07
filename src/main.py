@@ -40,6 +40,8 @@ def whats_new(session):
 
     sections_by_python = toctree.find_all('li', attrs={'class': 'toctree-l1'})
 
+    error_messages = []
+    
     for section in tqdm(sections_by_python):
         version_a_tag = section.find('a')
         if version_a_tag is None or 'href' not in version_a_tag.attrs:
@@ -49,7 +51,9 @@ def whats_new(session):
 
         v_soup = get_soup(session, version_link)
         if v_soup is None:
-            logging.error(f'Не удалось получить страницу: {version_link}')
+            error_messages.append(
+                f'Не удалось получить страницу: {version_link}'
+            )
             continue
 
         h1 = find_tag(v_soup, 'h1')
@@ -59,9 +63,12 @@ def whats_new(session):
 
         results.append((version_link, h1_text, dl_text))
 
+    for msg in error_messages:
+        logging.error(msg)
+
     # Вывод в терминал для отладки (опционально)
     for row in results[1:]:
-        print(*row)
+        logging.info(' '.join(row))
 
     return results
 
@@ -97,7 +104,7 @@ def latest_versions(session):
         results.append((absolute_link, version, status))
 
     for row in results[1:]:
-        print(*row)
+        logging.info(' '.join(row))
 
     return results
 
@@ -127,7 +134,7 @@ def download(session):
     archive_url = urljoin(downloads_url, pdf_link)
 
     filename = archive_url.rstrip('/').split('/')[-1]
-    print(f'Ссылка на файл: {archive_url}')
+    logging.info(f'Ссылка на файл: {archive_url}')
     downloads_dir = BASE_DIR / DOWNLOADS
     downloads_dir.mkdir(exist_ok=True)
 
