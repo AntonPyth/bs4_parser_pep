@@ -18,7 +18,6 @@ def configure_argument_parser(available_modes):
         action='store_true',
         help='Очистка кеша'
     )
-    # Новый аргумент --output вместо аргумента --pretty
     parser.add_argument(
         '-o',
         '--output',
@@ -36,6 +35,7 @@ def configure_logging():
         backupCount=5,
         encoding='utf-8'
     )
+
     # Базовая настройка логирования basicConfig.
     logging.basicConfig(
         datefmt=DT_FORMAT,

@@ -13,6 +13,13 @@ def fetch_and_parse(session, url, parser='lxml'):
     return BeautifulSoup(response.text, features=parser)
 
 
+def get_soup(session, url):
+    response = get_response(session, url)
+    if response is None:
+        return None
+    return BeautifulSoup(response.text, features='lxml')
+
+
 def get_response(session, url, encoding='utf-8'):
     try:
         response = session.get(url)

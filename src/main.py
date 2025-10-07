@@ -16,15 +16,14 @@ from constants import (
     PEPS_NUMS,
 )
 from outputs import control_output
-from utils import find_tag, get_response, fetch_and_parse
+from utils import find_tag, get_response, fetch_and_parse, get_soup
 
 
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
-    response = get_response(session, whats_new_url)
-    if response is None:
+    soup = get_soup(session, whats_new_url)
+    if soup is None:
         return
-    soup = BeautifulSoup(response.text, features='lxml')
     results = [('Ссылка на статью', 'Заголовок', 'Редактор, автор')]
 
     main_section = find_tag(
@@ -195,21 +194,24 @@ MODE_TO_FUNCTION = {
 
 
 def main():
-    configure_logging()
-    logging.info('Парсер запущен!')
-    arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
-    args = arg_parser.parse_args()
-    logging.info(f'Аргументы командной строки: {args}')
+    try:
+        configure_logging()
+        logging.info('Парсер запущен!')
+        arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
+        args = arg_parser.parse_args()
+        logging.info(f'Аргументы командной строки: {args}')
 
-    session = requests_cache.CachedSession()
-    if args.clear_cache:
-        session.cache.clear()
+        session = requests_cache.CachedSession()
+        if args.clear_cache:
+            session.cache.clear()
 
-    parser_mode = args.mode
-    results = MODE_TO_FUNCTION[parser_mode](session)
+        parser_mode = args.mode
+        results = MODE_TO_FUNCTION[parser_mode](session)
 
-    if parser_mode != 'download' and results is not None:
-        control_output(results, args)
+        if parser_mode != 'download' and results is not None:
+            control_output(results, args)
+    except Exception as e:
+        logging.exception('Ошибка исполнения кода в main.py: %s', e)
     logging.info('Парсер завершил работу.')
 
 
