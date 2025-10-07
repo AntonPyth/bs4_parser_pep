@@ -14,6 +14,8 @@ DT_FORMAT = '%d.%m.%Y %H:%M:%S'
 PRETTY = 'pretty'
 FILE = 'file'
 RESULT = 'results'
+DOWNLOAD = 'download'
+DOWNLOADS = 'downloads'
 
 # LOGS
 LOG_FORMAT = '"%(asctime)s - [%(levelname)s] - %(message)s"'

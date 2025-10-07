@@ -8,6 +8,8 @@ from tqdm import tqdm
 from configs import configure_argument_parser, configure_logging
 from constants import (
     BASE_DIR,
+    DOWNLOAD,
+    DOWNLOADS,
     EXPECTED_STATUS,
     MAIN_DOC_URL,
     PEP_URL,
@@ -66,8 +68,6 @@ def whats_new(session):
 
 def latest_versions(session):
     soup = get_soup(session, MAIN_DOC_URL)
-    if soup is None:
-        return
     results = [('Ссылка на документацию', 'Версия', 'Статус')]
     sidebar = find_tag(soup, 'div', attrs={'class': 'sphinxsidebarwrapper'})
     if sidebar is None:
@@ -105,8 +105,6 @@ def latest_versions(session):
 def download(session):
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
     soup = get_soup(session, downloads_url)
-    if soup is None:
-        return
 
     main_tag = find_tag(soup, 'div', attrs={'role': 'main'})
     if main_tag is None:
@@ -130,7 +128,7 @@ def download(session):
 
     filename = archive_url.rstrip('/').split('/')[-1]
     print(f'Ссылка на файл: {archive_url}')
-    downloads_dir = BASE_DIR / 'downloads'
+    downloads_dir = BASE_DIR / DOWNLOADS
     downloads_dir.mkdir(exist_ok=True)
 
     archive_path = downloads_dir / filename
@@ -145,8 +143,6 @@ def download(session):
 
 def pep(session):
     soup = get_soup(session, PEPS_NUMS)
-    if soup is None:
-        return
     tr_tag = soup.find_all('tr')
     results = [('Статус', 'Количество'), ]
     actual_statuses = {}
@@ -210,10 +206,10 @@ def main():
         parser_mode = args.mode
         results = MODE_TO_FUNCTION[parser_mode](session)
 
-        if parser_mode != 'download' and results is not None:
+        if parser_mode != DOWNLOAD and results is not None:
             control_output(results, args)
     except Exception as e:
-        logging.exception('Ошибка исполнения кода в main.py: %s', e)
+        logging.exception(f'Ошибка исполнения кода в main.py: {e}')
     logging.info('Парсер завершил работу.')
 
 
