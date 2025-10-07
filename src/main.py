@@ -49,9 +49,12 @@ def whats_new(session):
         href = version_a_tag['href']
         version_link = urljoin(whats_new_url, href)
 
-        v_resp = session.get(version_link)
-        v_resp.encoding = 'utf-8'
-        v_soup = BeautifulSoup(v_resp.text, 'lxml')
+        # v_resp = session.get(version_link)
+        # v_resp.encoding = 'utf-8'
+        v_soup = get_soup(session, version_link)
+        if v_soup is None:
+            logging.error(f'Не удалось получить страницу: {version_link}')
+            continue
 
         h1 = find_tag(v_soup, 'h1')
         dl = find_tag(v_soup, 'dl')
