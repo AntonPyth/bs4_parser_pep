@@ -1,17 +1,14 @@
 import logging
 
-from requests import RequestException
-
+import requests
 from bs4 import BeautifulSoup
 
 from exceptions import ParserFindTagException
 
 
-def get_soup(session, url):
+def get_soup(session, url, parser='lxml'):
     response = get_response(session, url)
-    if response is None:
-        return None
-    return BeautifulSoup(response.text, features='lxml')
+    return BeautifulSoup(response.text, parser)
 
 
 def get_response(session, url, encoding='utf-8'):
@@ -19,8 +16,8 @@ def get_response(session, url, encoding='utf-8'):
         response = session.get(url)
         response.encoding = encoding
         return response
-    except RequestException as e:
-        raise e
+    except requests.RequestException as e:
+        raise ConnectionError(f'Ошибка запроса к {url}: {str(e)}') from e
 
 
 def find_tag(soup, tag, attrs=None):

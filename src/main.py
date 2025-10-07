@@ -20,8 +20,6 @@ from utils import find_tag, get_soup
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
     soup = get_soup(session, whats_new_url)
-    if soup is None:
-        return
     results = [('Ссылка на статью', 'Заголовок', 'Редактор, автор')]
 
     main_section = find_tag(
@@ -31,7 +29,7 @@ def whats_new(session):
     )
     if main_section is None:
         raise ValueError(
-            'Раздел "What\'s New" не найден на странице: {whats_new_url}'
+            f'Раздел "What\'s New" не найден на странице: {whats_new_url}'
         )
 
     toctree = find_tag(main_section, 'div', attrs={'class': 'toctree-wrapper'})
@@ -47,8 +45,6 @@ def whats_new(session):
         href = version_a_tag['href']
         version_link = urljoin(whats_new_url, href)
 
-        # v_resp = session.get(version_link)
-        # v_resp.encoding = 'utf-8'
         v_soup = get_soup(session, version_link)
         if v_soup is None:
             logging.error(f'Не удалось получить страницу: {version_link}')
@@ -111,6 +107,7 @@ def download(session):
     soup = get_soup(session, downloads_url)
     if soup is None:
         return
+
     main_tag = find_tag(soup, 'div', attrs={'role': 'main'})
     if main_tag is None:
         raise ValueError(
@@ -120,17 +117,16 @@ def download(session):
     table_tag = find_tag(main_tag, 'table', attrs={'class': 'docutils'})
     if table_tag is None:
         raise ValueError('Таблица с загрузками не найдена')
+    pdf_tag = table_tag.find('a', href=re.compile(r'.+pdf-(a4|letter|docs)\.zip$'))
+    if pdf_tag is None:
+        pdf_tag = table_tag.find('a', href=re.compile(r'.+pdf\.zip$'))
 
-    pdf_a4_tag = find_tag(
-        table_tag,
-        'a',
-        attrs={'href': re.compile(r'.+pdf-a4\.zip$')}
-    )
-    if pdf_a4_tag is None:
-        raise ValueError('Ссылка на pdf-a4.zip не найдена')
+    if pdf_tag is None:
+        logging.warning('PDF архив не найден на странице загрузок')
+        return
 
-    pdf_a4_link = pdf_a4_tag['href']
-    archive_url = urljoin(downloads_url, pdf_a4_link)
+    pdf_link = pdf_tag['href']
+    archive_url = urljoin(downloads_url, pdf_link)
 
     filename = archive_url.rstrip('/').split('/')[-1]
     print(f'Ссылка на файл: {archive_url}')

@@ -4,7 +4,7 @@ import logging
 
 from prettytable import PrettyTable
 
-from constants import BASE_DIR, DATETIME_FORMAT, PRETTY, FILE
+from constants import BASE_DIR, DATETIME_FORMAT, FILE, PRETTY, RESULT
 
 
 def control_output(results, cli_args):
@@ -15,19 +15,17 @@ def control_output(results, cli_args):
 
     output = cli_args.output
     handler = output_handlers.get(output, default_output)
-
-    if output == FILE:
-        handler(results, cli_args)
-    else:
-        handler(results)
+    handler(results, cli_args)
 
 
-def default_output(results):
+def default_output(*args):
+    results = args[0]
     for row in results:
         print(*row)
 
 
-def pretty_output(results):
+def pretty_output(*args):
+    results = args[0]
     table = PrettyTable()
     table.field_names = results[0]
     table.align = 'l'
@@ -35,8 +33,9 @@ def pretty_output(results):
     print(table)
 
 
-def file_output(results, cli_args):
-    results_dir = BASE_DIR / 'results'
+def file_output(*args):
+    results, cli_args = args
+    results_dir = BASE_DIR / RESULT
     try:
         results_dir.mkdir(exist_ok=True)
     except OSError as e:
