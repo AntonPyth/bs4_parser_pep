@@ -16,7 +16,7 @@ from constants import (
     PEPS_NUMS,
 )
 from outputs import control_output
-from utils import find_tag, get_response, fetch_and_parse, get_soup
+from utils import find_tag, get_response, get_soup
 
 
 def whats_new(session):
@@ -32,11 +32,13 @@ def whats_new(session):
         attrs={'id': 'what-s-new-in-python'}
     )
     if main_section is None:
-        raise RuntimeError('Раздел "What\'s New" не найден на странице')
+        raise ValueError(
+            'Раздел "What\'s New" не найден на странице: {whats_new_url}'
+        )
 
     toctree = find_tag(main_section, 'div', attrs={'class': 'toctree-wrapper'})
     if toctree is None:
-        raise RuntimeError('Список версий в "What\'s New" не найден')
+        raise ValueError('Список версий в "What\'s New" не найден')
 
     sections_by_python = toctree.find_all('li', attrs={'class': 'toctree-l1'})
 
@@ -59,23 +61,20 @@ def whats_new(session):
         results.append((version_link, h1_text, dl_text))
 
     # Вывод в терминал для отладки (опционально)
-    for row in results[1:]:  # Пропускаем заголовки при печати
+    for row in results[1:]:
         print(*row)
 
     return results
 
 
 def latest_versions(session):
-    # response = session.get(MAIN_DOC_URL)
-    # response.encoding = 'utf-8'
-    response = get_response(session, MAIN_DOC_URL)
-    if response is None:
+    soup = get_soup(session, MAIN_DOC_URL)
+    if soup is None:
         return
-    soup = BeautifulSoup(response.text, 'lxml')
     results = [('Ссылка на документацию', 'Версия', 'Статус')]
     sidebar = find_tag(soup, 'div', attrs={'class': 'sphinxsidebarwrapper'})
     if sidebar is None:
-        raise RuntimeError('Sidebar not found')
+        raise ValueError('Sidebar not found: {MAIN_DOC_URL}')
 
     ul_tags = sidebar.find_all('ul')
 
@@ -85,7 +84,9 @@ def latest_versions(session):
             a_tags = ul.find_all('a')
             break
     if not a_tags:
-        raise RuntimeError('Ничего не нашлось')
+        raise ValueError(
+            'Не найдены ссылки на версии Python в боковой панели'
+        )
 
     pattern = r'Python (?P<version>\d\.\d+) \((?P<status>.*)\)'
     for a_tag in a_tags:
@@ -98,7 +99,7 @@ def latest_versions(session):
             version, status = a_tag.get_text(), ''
         results.append((absolute_link, version, status))
 
-    for row in results[1:]:  # Пропускаем заголовки при печати
+    for row in results[1:]:
         print(*row)
 
     return results
@@ -106,19 +107,18 @@ def latest_versions(session):
 
 def download(session):
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
-    response = get_response(session, downloads_url)
-    if response is None:
+    soup = get_soup(session, downloads_url)
+    if soup is None:
         return
-    soup = BeautifulSoup(response.text, features='lxml')
     main_tag = find_tag(soup, 'div', attrs={'role': 'main'})
     if main_tag is None:
-        raise RuntimeError(
+        raise ValueError(
             'Главный блок (role=main) не найден на странице '
-            'загрузок'
+            'загрузок: {downloads_url}'
         )
     table_tag = find_tag(main_tag, 'table', attrs={'class': 'docutils'})
     if table_tag is None:
-        raise RuntimeError('Таблица с загрузками не найдена')
+        raise ValueError('Таблица с загрузками не найдена')
 
     pdf_a4_tag = find_tag(
         table_tag,
@@ -126,7 +126,7 @@ def download(session):
         attrs={'href': re.compile(r'.+pdf-a4\.zip$')}
     )
     if pdf_a4_tag is None:
-        raise RuntimeError('Ссылка на pdf-a4.zip не найдена')
+        raise ValueError('Ссылка на pdf-a4.zip не найдена')
 
     pdf_a4_link = pdf_a4_tag['href']
     archive_url = urljoin(downloads_url, pdf_a4_link)
@@ -147,7 +147,9 @@ def download(session):
 
 
 def pep(session):
-    soup = fetch_and_parse(session, PEPS_NUMS)
+    soup = get_soup(session, PEPS_NUMS)
+    if soup is None:
+        return
     tr_tag = soup.find_all('tr')
     results = [('Статус', 'Количество'), ]
     actual_statuses = {}
@@ -158,7 +160,10 @@ def pep(session):
             table_pep_status = find_tag(tr_tag[i], 'abbr').text[1:]
             expected_status = EXPECTED_STATUS[table_pep_status]
             pep_link = urljoin(PEP_URL, tr_tag[i].a['href'])
-            soup = fetch_and_parse(session, pep_link)
+            soup = get_soup(session, pep_link)
+            if soup is None:
+                log_messages.append(f'Ошибка при запросе к {pep_link}')
+                continue
             pep_card_dl_tag = find_tag(
                 soup,
                 'dl',

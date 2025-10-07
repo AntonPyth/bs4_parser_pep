@@ -7,12 +7,6 @@ from bs4 import BeautifulSoup
 from exceptions import ParserFindTagException
 
 
-def fetch_and_parse(session, url, parser='lxml'):
-    """Получает страницу по URL и парсит её."""
-    response = get_response(session, url)
-    return BeautifulSoup(response.text, features=parser)
-
-
 def get_soup(session, url):
     response = get_response(session, url)
     if response is None:
