@@ -44,8 +44,16 @@ def whats_new(session):
 
     for section in tqdm(sections_by_python):
         version_a_tag = section.find('a')
-        if version_a_tag is None or 'href' not in version_a_tag.attrs:
+
+        if version_a_tag is None:
+            error_messages.append('Пропущен section: не найден тег <a>')
             continue
+        if 'href' not in version_a_tag.attrs:
+            error_messages.append(
+                'Пропущен section: у тега <a> отсутствует аттрибут href'
+            )
+            continue
+
         href = version_a_tag['href']
         version_link = urljoin(whats_new_url, href)
 

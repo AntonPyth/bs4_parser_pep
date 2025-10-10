@@ -13,9 +13,7 @@ def control_output(results, cli_args):
         FILE: file_output,
     }
 
-    output = cli_args.output
-    handler = output_handlers.get(output, default_output)
-    handler(results, cli_args)
+    output_handlers.get(cli_args.output, default_output)(results, cli_args)
 
 
 def default_output(*args):

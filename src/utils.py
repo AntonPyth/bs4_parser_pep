@@ -6,11 +6,6 @@ from bs4 import BeautifulSoup
 from exceptions import ParserFindTagException
 
 
-def get_soup(session, url, parser='lxml'):
-    response = get_response(session, url)
-    return BeautifulSoup(response.text, parser)
-
-
 def get_response(session, url, encoding='utf-8'):
     try:
         response = session.get(url)
@@ -18,6 +13,11 @@ def get_response(session, url, encoding='utf-8'):
         return response
     except requests.RequestException as e:
         raise ConnectionError(f'Ошибка запроса к {url}: {str(e)}') from e
+
+
+def get_soup(session, url, parser='lxml'):
+    response = get_response(session, url)
+    return BeautifulSoup(response.text, parser)
 
 
 def find_tag(soup, tag, attrs=None):
