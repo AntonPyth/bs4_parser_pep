@@ -46,12 +46,14 @@ def whats_new(session):
         version_a_tag = section.find('a')
 
         if version_a_tag is None:
-            error_messages.append('Пропущен section: не найден тег <a>')
+            msg_1 = 'Пропущен section: не найден тег <a>'
+            error_messages.append(msg_1)
+            logging.warning(msg_1)
             continue
         if 'href' not in version_a_tag.attrs:
-            error_messages.append(
-                'Пропущен section: у тега <a> отсутствует аттрибут href'
-            )
+            msg_2 = 'Пропущен section: у тега <a> отсутствует аттрибут href'
+            error_messages.append(msg_2)
+            logging.warning(msg_2)
             continue
 
         href = version_a_tag['href']
